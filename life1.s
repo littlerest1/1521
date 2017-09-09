@@ -2,21 +2,26 @@
 
    .data
 
-N: .word 10  # gives board dimensions
+N: .word 15  # gives board dimensions
 
 board:
-   .byte 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
-   .byte 1, 1, 0, 0, 0, 0, 0, 0, 0, 0
-   .byte 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
-   .byte 0, 0, 1, 0, 1, 0, 0, 0, 0, 0
-   .byte 0, 0, 0, 0, 1, 0, 0, 0, 0, 0
-   .byte 0, 0, 0, 0, 1, 1, 1, 0, 0, 0
-   .byte 0, 0, 0, 1, 0, 0, 1, 0, 0, 0
-   .byte 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
-   .byte 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
-   .byte 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+   .byte 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
+   .byte 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0
+   .byte 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0
+   .byte 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0
+   .byte 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1
+   .byte 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0
+   .byte 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0
+   .byte 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0
+   .byte 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0
+   .byte 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0
+   .byte 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1
+   .byte 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0
+   .byte 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0
+   .byte 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0
+   .byte 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
 
-newBoard: .space 100
+newBoard: .space 225
 # prog.s ... Game of Life on a NxN grid
 #
 # Needs to be combined with board.s
@@ -26,7 +31,7 @@ newBoard: .space 100
 # Written by <<YOU>>, August 2017
  
    .data
-main_ret_save: .space 4
+main_ret_save: .word 4
 msg1:
    .asciiz "# Iterations: "
 msg2:
@@ -43,13 +48,15 @@ msg7:
    .asciiz "nbone"
 char0:
    .byte 1
+msg8:
+   .asciiz " "
 eol:
    .asciiz "\n"
    
    .text
    .globl main
 main:
-   sw   $ra, main_ret_save
+  sw   $ra, main_ret_save
 
    la   $a0, msg1   		#printf("Iterations:")
    li   $v0, 4				
@@ -58,13 +65,15 @@ main:
    syscall
    move $s0,$v0    
 
-		li $t0,1        #t0=n=1
-		li $t1,0				#i=t1=0
-		li $t2,0				#j=t2=0
-		lw $t3,N
-		la $t4,board    #t4=board
-		la $t5,newBoard    #t5=newboard
-		j  loop2
+
+    li $t0,1        #t0=n=1
+    li $t1,0				#i=t1=0
+	  li $t2,0				#j=t2=0
+	  lw $t3,N
+	  la $t4,board    #t4=board
+    la $t5,newBoard    #t5=newboard
+    j  loop2
+    
     
 loop2:
 		bgt $t0,$s0,end_main     #t0=n if >maxiter=s0 end
@@ -82,11 +91,11 @@ loop4:
 		move $a1,$t2              #move to argument a0=i a1=j
 		jal neighbours            #call function   neighbours
 		move $s2,$v0        	    #v0->s3  nn return by v0
-##		move $a0,$s2
-##		li $v0,1
-##		syscall
+#		move $a0,$s2
+#		li $v0,1
+#			syscall         #print check
 
-    mul $t1,$t1,10				#t1=i=10i
+    mul $t1,$t1,$t3				#t1=i=Ni
 		add $t4,$t4,$t1				#t4=board[i]
 		add $t4,$t4,$t2				#t4=board[i][j]
 		lb  $a0,($t4)				#load byte of b[i][j]
@@ -97,7 +106,10 @@ loop4:
 
 
 		
-end_loop4:              
+end_loop4: 
+#    la $a0,eol
+#    li $v0,4
+#    syscall             
 		li $t2,0			#t2=j=0 
 		add $t1,$t1,1     #t1=i=i+1
 		j loop3
@@ -118,9 +130,9 @@ nb0:
 #  li $v0,1
 #  syscall
 	
-	div $t1,$t1,10
+	div $t1,$t1,$t3
 	la  $t4,board
-	addi $t2,$t2,1
+	add $t2,$t2,1
 	j loop4
 nb1:
 	
@@ -135,9 +147,9 @@ nb1:
 #  li $v0,1
 #  syscall
 	
-	div $t1,$t1,10
+	div $t1,$t1,$t3
 	la  $t4,board
-	addi $t2,$t2,1
+	add $t2,$t2,1
 	j loop4 
 
 end_loop3:
@@ -189,12 +201,13 @@ loop6:
 	  add $t9,$t1,$t7			#t9=t1+t7=i+x
 	  bltz $t9,continue     #t9<0 continue    
 	  sub  $t3,$t3,1			#t3=N-1
-	  bgt  $t9,$t3,continue   #t9>9 continue
+	  bgt  $t9,$t3,continue   #t9>N-1 continue
 	  
 	  add $s1,$t2,$t8			  #s1=t2+t8=j+y
 	  bltz $s1,continue     #s1<0 continue
 	  bgt  $s1,$t3,continue #s1>9,continue
-	  
+	  add $t3,$t3,1
+	  	  
 	  beqz $t7,second       #if t7=0  second statement
     j    comp
 second:
@@ -211,7 +224,16 @@ end_loop5:
 	  lw $ra,neb_ret_save   #return value
 	  jr $ra
 comp:
-	  mul $t9,$t9,10        #t9=t9*10
+	  mul $t9,$t9,$t3        #t9=t9*N
+	  
+##	  move $a0,$t9        ##print check
+##	  li $v0,1         
+##	  syscall
+    
+##    la $a0,msg8
+##    li $v0,4
+##    syscall
+    
 	  add $t4,$t4,$t9       #t4=t4+t9
 	  add $t4,$t4,$s1       #t4=t4+s1
 	  lb  $a0,($t4)         #load byte of a0
@@ -251,7 +273,7 @@ loop8:
 		la  $t4,board
 		la  $t5,newBoard
 #		sw  $t5,($t5)
-		mul $t1,$t1,10
+		mul $t1,$t1,$t3
 		
 		add $t4,$t4,$t1
 		add $t4,$t4,$t2
@@ -259,7 +281,7 @@ loop8:
 		add $t5,$t5,$t2
 
     lb $s5,($t5)
-  ##  li $v0,1
+  ##  li $v0,1     ##print check
  ##   syscall
     
 		sb $s5,($t4)
@@ -281,7 +303,7 @@ end_loop7:
 		la $t4,board
 		la $t5,newBoard
 		
-    addi $t0,$t0,1
+    add $t0,$t0,1
     j loop2
 
 printdot:
@@ -290,7 +312,7 @@ printdot:
 	   syscall
 	   
 	   add $t2,$t2,1
-	   div $t1,$t1,10
+	   div $t1,$t1,$t3
 	   j loop8
 printo:
 		la $a0,msg3
@@ -298,6 +320,5 @@ printo:
 	   syscall
 	   
 	   add $t2,$t2,1
-	   div $t1,$t1,10
+	   div $t1,$t1,$t3
 	   j loop8
- 
